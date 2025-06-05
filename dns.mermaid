@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Your_Local_Notebook_Chrome as Chrome Browser <br>(Local Notebook)
+    participant Cloud_IDE_Public_URL as Cloud IDE Forwarder <br>(e.g., *.cloudworkstations.dev)
+    participant Nginx_on_IDE as Nginx <br>(Cloud IDE: Port 8080)
+    participant Blocky_on_IDE as Blocky <br>(Cloud IDE: Port 4000)
+    participant Upstream_DNS as Upstream DNS <br>(e.g., 1.1.1.1 Cloudflare)
+    participant Target_Website as Target Website
+
+    Note over Your_Local_Notebook_Chrome: User tries to access example.com
+
+    Your_Local_Notebook_Chrome->>Cloud_IDE_Public_URL: 1. HTTPS DoH Request for example.com <br>(to YOUR_PUBLIC_DOH_URL/dns-query?dns=...)
+    Cloud_IDE_Public_URL->>Nginx_on_IDE: 2. Forwards HTTP Request <br>(to localhost:8080/dns-query?dns=...)
+
+    Nginx_on_IDE->>Blocky_on_IDE: 3. Proxies HTTP Request <br>(to localhost:4000/dns-query?dns=...)
+    
+    Blocky_on_IDE-->>Upstream_DNS: 4. Plain DNS Query for example.com <br>(UDP/TCP to 1.1.1.1 or 8.8.8.8)
+    Upstream_DNS-->>Blocky_on_IDE: 5. DNS Response (IP of example.com)
+
+    Blocky_on_IDE->>Nginx_on_IDE: 6. HTTP Response <br>(containing DNS answer)
+    Nginx_on_IDE->>Cloud_IDE_Public_URL: 7. Forwards HTTP Response
+    Cloud_IDE_Public_URL->>Your_Local_Notebook_Chrome: 8. HTTPS DoH Response <br>(containing DNS answer)
+
+    Note over Your_Local_Notebook_Chrome: Chrome now has IP for example.com
+
+    Your_Local_Notebook_Chrome->>Target_Website: 9. HTTPS Request to example.com's IP
+    Target_Website-->>Your_Local_Notebook_Chrome: 10. Website Content
