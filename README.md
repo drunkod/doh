@@ -135,3 +135,4 @@ This assumes:
 *   **Secure Nginx:** For a production setup, you would typically have Nginx handle TLS termination (HTTPS) directly. The cloud IDE's forwarding often provides HTTPS at the edge.
 *   **Add more robust health checks:** The `sleep` in `onStart` is basic. More advanced checks could poll the service endpoints.
 *   **Persistent Logging:** Redirect logs to persistent storage if needed.
+
